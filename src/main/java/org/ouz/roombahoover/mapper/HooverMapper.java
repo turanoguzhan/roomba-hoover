@@ -1,14 +1,10 @@
 package org.ouz.roombahoover.mapper;
 
+import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
-import org.ouz.roombahoover.model.HooverInput;
-import org.ouz.roombahoover.model.HooverOutput;
-import org.ouz.roombahoover.model.RawInput;
-import org.ouz.roombahoover.model.Position;
-import org.ouz.roombahoover.model.Room;
+import org.ouz.roombahoover.model.*;
 
 import java.util.List;
 

@@ -9,8 +9,8 @@ import org.ouz.roombahoover.model.Room;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-08-07T15:22:26+0300",
-    comments = "version: 1.4.2.Final, compiler: Eclipse JDT (IDE) 3.39.0.v20240725-1906, environment: Java 17.0.11 (Eclipse Adoptium)"
+    date = "2024-08-07T18:40:25+0300",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.11 (Amazon.com Inc.)"
 )
 public class HooverMapperImpl implements HooverMapper {
 

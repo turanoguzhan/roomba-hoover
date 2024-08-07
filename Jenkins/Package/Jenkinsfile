@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+	stages {
+	    stage('Checkout code') {
+			steps {
+				checkout scm
+			}
+        }
+        stage('Package') {
+            tools {
+                jdk "Java 17"
+                maven "LOCALMAVEN"
+            }
+            steps {
+                echo 'Packaging..'
+                sh 'mvn -X clean install -U spring-boot:repackage -DskipTests -Dcheckstyle.skip'
+            }
+        }
+        stage('Build') {
+	        tools {
+                jdk "Java 17"
+                maven "LOCALMAVEN"
+            }
+            steps {
+                echo 'Building..'
+                sh'''
+				docker build -t turanoguzhan/roomba-hoover:v1.0 .
+				docker login -u turanoguzhan -p [PASSWORD] 
+				docker push turanoguzhan/roomba-hoover:v1.0
+				'''
+            }
+        }
+    }
+}

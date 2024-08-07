@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: hoover
-          image: turanoguzhan/robotic-hoover:latest # you should change the image repo when you're using
+          image: turanoguzhan/roomba-hoover:v1.0 # you should change the image repo when you're using
           ports:
             - containerPort: 8080
           env:

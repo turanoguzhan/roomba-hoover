@@ -21,4 +21,8 @@ public class RawInput {
 	private List<int[]> patches;
 
 	private String instructions;
+
+    public boolean checkAllParametersNull() {
+		return roomSize==null && coords==null && patches==null && instructions==null;
+    }
 }

@@ -1,22 +1,21 @@
 package org.ouz.roombahoover.controller;
 
-import org.ouz.roombahoover.model.HooverInput;
-import org.ouz.roombahoover.model.HooverOutput;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ouz.roombahoover.model.Position;
-import org.ouz.roombahoover.model.Room;
+import org.ouz.roombahoover.config.SecurityConfig;
+import org.ouz.roombahoover.model.*;
 import org.ouz.roombahoover.service.HooverService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -25,48 +24,57 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Import(SecurityConfig.class)
 @WebMvcTest(HooverController.class)
 public class HooverControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Mock
+    @MockBean
     private HooverService hooverService;
 
-    private HooverInput input;
+    private RawInput rawInput;
+    private String rawInputJson;
+
+    private ObjectMapper objectMapper;
+
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws JsonProcessingException {
         MockitoAnnotations.openMocks(this);
 
-        Room roomSize = new Room(5, 5);
-        Position initialCoords = new Position(1, 2);
-        List<Position> patches = Arrays.asList(new Position(1, 0), new Position(2, 2), new Position(2, 3));
-        String instructions = "NNESEESWNWW";
-        input = new HooverInput(roomSize, initialCoords, patches, instructions);
+        rawInput = new RawInput();
+        rawInput.setRoomSize(new int[]{5,5});
+        rawInput.setCoords(new int[]{1,2});
+        rawInput.setPatches(List.of(new int[]{1,0},new int[]{2,2},new int[]{2,3}));
+        rawInput.setInstructions("NNESEESWNWW");
+
+        objectMapper = new ObjectMapper();
+
+        rawInputJson = objectMapper.writeValueAsString(rawInput);
+
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = {"USER"})
+    @WithMockUser(username = "admin", password = "123456")
     public void testMoveToCleanRoom() throws Exception {
-
-        HooverOutput expectedOutput = new HooverOutput(new int[]{1,3}, 1);
+        HooverOutput expectedOutput = new HooverOutput(new int[]{1, 3}, 1);
 
         when(hooverService.move(any(HooverInput.class))).thenReturn(expectedOutput);
 
-        // Act & Assert
         mockMvc.perform(post("/api/robot/move")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roomSize\":{\"width\":5,\"height\":5},\"coords\":{\"x\":1,\"y\":2},\"patches\":[{\"x\":1,\"y\":0},{\"x\":2,\"y\":2},{\"x\":2,\"y\":3}],\"instructions\":\"NNESEESWNWW\"}"))
+                        .content(rawInputJson)
+                )
                 .andExpect(status().isOk())
-                .andExpect(content().json("{\"coords\":{\"x\":1,\"y\":3},\"patches\":1}"));
+                .andExpect(content().json(objectMapper.writeValueAsString(expectedOutput)));
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = {"USER"})
+    @WithMockUser(username = "admin")
     public void testCleanRoom_InvalidInput() throws Exception {
-        // Act & Assert
+
         mockMvc.perform(post("/api/robot/move")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
@@ -75,10 +83,10 @@ public class HooverControllerTest {
 
     @Test
     public void testCleanRoom_Unauthorized() throws Exception {
-        // Act & Assert
+
         mockMvc.perform(post("/api/robot/move")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roomSize\":{\"width\":5,\"height\":5},\"coords\":{\"x\":1,\"y\":2},\"patches\":[{\"x\":1,\"y\":0},{\"x\":2,\"y\":2},{\"x\":2,\"y\":3}],\"instructions\":\"NNESEESWNWW\"}"))
+                        .content(rawInputJson))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -90,12 +98,11 @@ public class HooverControllerTest {
 
         when(hooverService.move(any(HooverInput.class))).thenReturn(expectedOutput);
 
-        // Act & Assert
         mockMvc.perform(post("/api/robot/move")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roomSize\":{\"width\":5,\"height\":5},\"coords\":{\"x\":1,\"y\":2},\"patches\":[],\"instructions\":\"NNESEESWNWW\"}"))
+                        .content(rawInputJson))
                 .andExpect(status().isOk())
-                .andExpect(content().json("{\"coords\":{\"x\":1,\"y\":3},\"patches\":0}"));
+                .andExpect(content().json("{\"coords\":[1,3],\"patches\":0}"));
     }
 
     @Test
@@ -104,14 +111,16 @@ public class HooverControllerTest {
 
         HooverOutput expectedOutput = new HooverOutput(new int[]{1,2}, 0);
 
+        rawInput.setInstructions("");
+        rawInputJson = objectMapper.writeValueAsString(rawInput);
+
         when(hooverService.move(any(HooverInput.class))).thenReturn(expectedOutput);
 
-        // Act & Assert
         mockMvc.perform(post("/api/robot/move")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roomSize\":{\"width\":5,\"height\":5},\"coords\":{\"x\":1,\"y\":2},\"patches\":[{\"x\":1,\"y\":0},{\"x\":2,\"y\":2},{\"x\":2,\"y\":3}],\"instructions\":\"\"}"))
+                        .content(rawInputJson))
                 .andExpect(status().isOk())
-                .andExpect(content().json("{\"coords\":{\"x\":1,\"y\":2},\"patches\":0}"));
+                .andExpect(content().json("{\"coords\":[1,2],\"patches\":0}"));
     }
 
     @Test
@@ -122,11 +131,10 @@ public class HooverControllerTest {
 
         when(hooverService.move(any(HooverInput.class))).thenReturn(expectedOutput);
 
-        // Act & Assert
         mockMvc.perform(post("/api/robot/move")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"roomSize\":{\"width\":5,\"height\":5},\"coords\":{\"x\":1,\"y\":2},\"patches\":[{\"x\":1,\"y\":0},{\"x\":2,\"y\":2},{\"x\":2,\"y\":3}],\"instructions\":\"NNNNNNNNNN\"}"))
+                        .content(rawInputJson))
                 .andExpect(status().isOk())
-                .andExpect(content().json("{\"coords\":{\"x\":5,\"y\":5},\"patches\":0}"));
+                .andExpect(content().json("{\"coords\":[5,5],\"patches\":0}"));
     }
 }
