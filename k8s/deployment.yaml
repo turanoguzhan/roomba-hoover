@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hoover-deployment
+  labels:
+    app: hoover
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hoover
+  template:
+    metadata:
+      labels:
+        app: hoover
+    spec:
+      containers:
+        - name: hoover
+          image: turanoguzhan/robotic-hoover:latest # you should change the image repo when you're using
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "default"
+      

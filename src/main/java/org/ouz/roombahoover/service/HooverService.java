@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 @Slf4j
 @Service
 public class HooverService {
@@ -21,7 +22,7 @@ public class HooverService {
      * move the robot based on the instructions.
      * Respectively, ;
      * Validate input data
-     * start from the inital coordinates and then visit positions based on instructions
+     * start from the initial coordinates and then visit positions based on instructions
      * keep visited coordinates
      * count input patches which ones matches with visited positions
      * @param input : json input data.
@@ -43,16 +44,16 @@ public class HooverService {
             Direction direction = Direction.valueOf(String.valueOf(command).toUpperCase());
 
             switch (direction) {
-                case NORTH:
+                case N:
                     newY = Math.min(newY + 1, input.getRoomSize().getHeight() - 1);
                     break;
-                case SOUTH:
+                case S:
                     newY = Math.max(newY - 1, 0);
                     break;
-                case EAST:
+                case E:
                     newX = Math.min(newX + 1, input.getRoomSize().getWidth() - 1);
                     break;
-                case WEST:
+                case W:
                     newX = Math.max(newX - 1, 0);
                     break;
                 default:
@@ -77,10 +78,10 @@ public class HooverService {
      */
     private void validateRoomSize(Room roomSize) {
         if (roomSize == null) {
-            throw new IllegalArgumentException("Room size cannot be null");
+            throw new IllegalArgumentException("Room size cannot be null Room: " + roomSize);
         }
         if (roomSize.getHeight() < 1 || roomSize.getWidth() < 1) {
-            throw new IllegalArgumentException("Room's width and height must be greater than zero");
+            throw new IllegalArgumentException("Room's width and height must be greater than zero. Room: " + roomSize);
         }
     }
 
@@ -94,13 +95,13 @@ public class HooverService {
      */
     private void validateInitialCoords(Position coords,Room roomSize) {
         if (coords == null) {
-            throw new IllegalArgumentException("Coords cannot be null");
+            throw new IllegalArgumentException("Coords cannot be null. Coords: " + coords);
         }
         if (coords.x() < 0 || coords.y() < 0) {
-            throw new IllegalArgumentException("Each point of inital coords must be greater than zero");
+            throw new IllegalArgumentException("Each point of inital coords must be greater than zero. Coords: " + coords);
         }
         if(coords.x() > roomSize.getWidth() || coords.y() > roomSize.getHeight()) {
-            throw new IllegalArgumentException("Each point of inital coords must be less than the room size");
+            throw new IllegalArgumentException("Each point of inital coords must be less than the room size. Coords: " + coords);
         }
     }
 
