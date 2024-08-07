@@ -118,7 +118,7 @@ The application uses Basic Authentication. The credentials are stored in the `ap
 ```properties
 app.security.user.name=admin
 app.security.user.password=123456
-
+```
 
 ## API Documentation
 

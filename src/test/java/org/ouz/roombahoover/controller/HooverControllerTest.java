@@ -81,4 +81,52 @@ public class HooverControllerTest {
                         .content("{\"roomSize\":{\"width\":5,\"height\":5},\"coords\":{\"x\":1,\"y\":2},\"patches\":[{\"x\":1,\"y\":0},{\"x\":2,\"y\":2},{\"x\":2,\"y\":3}],\"instructions\":\"NNESEESWNWW\"}"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"USER"})
+    public void testMoveToCleanRoom_NoPatches() throws Exception {
+
+        HooverOutput expectedOutput = new HooverOutput(new int[]{1,3}, 0);
+
+        when(hooverService.move(any(HooverInput.class))).thenReturn(expectedOutput);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/robot/move")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"roomSize\":{\"width\":5,\"height\":5},\"coords\":{\"x\":1,\"y\":2},\"patches\":[],\"instructions\":\"NNESEESWNWW\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"coords\":{\"x\":1,\"y\":3},\"patches\":0}"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"USER"})
+    public void testMoveToCleanRoom_EmptyInstructions() throws Exception {
+
+        HooverOutput expectedOutput = new HooverOutput(new int[]{1,2}, 0);
+
+        when(hooverService.move(any(HooverInput.class))).thenReturn(expectedOutput);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/robot/move")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"roomSize\":{\"width\":5,\"height\":5},\"coords\":{\"x\":1,\"y\":2},\"patches\":[{\"x\":1,\"y\":0},{\"x\":2,\"y\":2},{\"x\":2,\"y\":3}],\"instructions\":\"\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"coords\":{\"x\":1,\"y\":2},\"patches\":0}"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"USER"})
+    public void testMoveToCleanRoom_OutOfBounds() throws Exception {
+
+        HooverOutput expectedOutput = new HooverOutput(new int[]{5,5}, 0);
+
+        when(hooverService.move(any(HooverInput.class))).thenReturn(expectedOutput);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/robot/move")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"roomSize\":{\"width\":5,\"height\":5},\"coords\":{\"x\":1,\"y\":2},\"patches\":[{\"x\":1,\"y\":0},{\"x\":2,\"y\":2},{\"x\":2,\"y\":3}],\"instructions\":\"NNNNNNNNNN\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"coords\":{\"x\":5,\"y\":5},\"patches\":0}"));
+    }
 }
