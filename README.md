@@ -107,7 +107,7 @@ This is the absolute beginner version of the robot vacuum cleaner application. T
 
 3. **Access the service:**
 
-   Use the external IP address assigned by the LoadBalancer service to access the application.
+   Use the external IP address assigned by the NodePort service to access the application.
 
 ## Configuration
 
